@@ -22,7 +22,7 @@ public class ServerDefrager extends ByteToMessageDecoder {
 			return;
 		}
 		Coder object = Opcodes.newInstance(opcode);
-		object.onDecode(in);
+		object.onDecode(in, true);
 		out.add(object);
 	}
 }

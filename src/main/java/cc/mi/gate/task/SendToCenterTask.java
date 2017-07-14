@@ -1,7 +1,8 @@
-package cc.mi.gate.system;
+package cc.mi.gate.task;
 
 import cc.mi.core.coder.Coder;
 import cc.mi.core.task.AbstractTask;
+import cc.mi.gate.system.SystemManager;
 
 public class SendToCenterTask extends AbstractTask {
 	private final Coder coder;

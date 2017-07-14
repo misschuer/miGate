@@ -9,6 +9,6 @@ public class ServerEnfrager extends MessageToByteEncoder<Coder> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Coder msg, ByteBuf out) throws Exception {
 		// 这样才能避免跨线程创建ByteBuf和销毁ByteBuf(全部在IO线程中完成)
-		msg.onEncode(out);
+		msg.onEncode(out, true);
 	}
 }
