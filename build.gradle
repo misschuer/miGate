@@ -26,6 +26,8 @@ dependencies {
     implementation 'com.google.guava:guava:21.0'
 	
 	implementation 'org.freemarker:freemarker:2.3.22'
+	
+	implementation 'org.ini4j:ini4j:0.5.+'
 
 	implementation project(':miCore') // 设置项目依赖
 	
