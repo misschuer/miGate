@@ -1,6 +1,7 @@
 package cc.mi.gate.net;
 
 import cc.mi.core.coder.Coder;
+import cc.mi.core.constance.MsgConst;
 import cc.mi.core.task.SendToCenterTask;
 import cc.mi.gate.system.SystemManager;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,7 +34,7 @@ public class ServerInboundHandler extends SimpleChannelInboundHandler<Coder> {
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Coder msg) throws Exception {
 		msg.setId(SystemManager.getChannelId(ctx.channel()));
-		msg.setInternalDestFD(-2);
+		msg.setInternalDestFD(MsgConst.MSG_FROM_CLIENT);
 		SystemManager.submitTask(new SendToCenterTask(SystemManager.getCenterChannel(), msg));
 	}
 
