@@ -10,6 +10,7 @@ public class GateClientHandler extends SimpleChannelInboundHandler<Coder> {
 	public void channelActive(final ChannelHandlerContext ctx) {
 		System.out.println("connect to center success");
 		SystemManager.setCenterChannel(ctx.channel());
+		SystemManager.regToCenter();
 	}
 	
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {

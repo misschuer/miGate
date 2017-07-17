@@ -7,7 +7,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cc.mi.core.coder.Coder;
-import cc.mi.core.task.Task;
+import cc.mi.core.constance.IdentityConst;
+import cc.mi.core.generate.msg.ServerRegIdentity;
+import cc.mi.core.task.SendToCenterTask;
+import cc.mi.core.task.base.Task;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
@@ -73,5 +76,12 @@ public class SystemManager {
 		channelHash.remove(id);
 		
 		//TODO: 通知中心服 客户端断网了
+	}
+	
+	public static void regToCenter() {
+		ServerRegIdentity identity = new ServerRegIdentity();
+		identity.setInternalDestFD(IdentityConst.IDENDITY_CENTER);
+		identity.setIdentity(IdentityConst.IDENDITY_GATE);
+		submitTask(new SendToCenterTask(centerChannel, identity));
 	}
 }
