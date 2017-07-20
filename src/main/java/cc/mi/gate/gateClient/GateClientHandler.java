@@ -2,6 +2,7 @@ package cc.mi.gate.gateClient;
 
 import cc.mi.core.coder.Coder;
 import cc.mi.gate.system.SystemManager;
+import cc.mi.gate.task.DealInnerDataTask;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -19,12 +20,12 @@ public class GateClientHandler extends SimpleChannelInboundHandler<Coder> {
 	
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Coder coder) throws Exception {
-		//TODO: 如果是网关处理的 在这里进行处理
-		
-		// 否则就发送到客户端
 		int id = coder.getId();
-		coder.setId(0);
-		SystemManager.sendToClient(id, coder);
+		if (id > 0) {
+			SystemManager.sendToClient(id, coder);
+		} else {
+			SystemManager.submitTask(new DealInnerDataTask(coder));
+		}
 	}
 	
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {

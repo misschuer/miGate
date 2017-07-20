@@ -1,5 +1,6 @@
 package cc.mi.gate.system;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -8,9 +9,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import cc.mi.core.coder.Coder;
 import cc.mi.core.constance.IdentityConst;
+import cc.mi.core.generate.Opcodes;
 import cc.mi.core.generate.msg.ServerRegIdentity;
+import cc.mi.core.handler.Handler;
 import cc.mi.core.task.SendToCenterTask;
 import cc.mi.core.task.base.Task;
+import cc.mi.gate.handler.DestroyConnectionHandler;
+import cc.mi.gate.task.NoticeDestroyTask;
+import cc.mi.gate.task.SendCreateConnectionTask;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
@@ -27,6 +33,9 @@ public class SystemManager {
 	// 通道的整形惟一id
 	private static final AtomicInteger idGenerater;
 	
+	// 句柄
+	private static final Handler[] handlers = new Handler[1<<12];
+	
 	private static Channel centerChannel = null;
 		
 	static {
@@ -34,6 +43,12 @@ public class SystemManager {
 		CHANNEL_ID	= AttributeKey.valueOf("channel_id");
 		idGenerater = new AtomicInteger(0);
 		executor = Executors.newSingleThreadExecutor();
+		
+		handlers[Opcodes.MSG_DESTROYCONNECTION] = new DestroyConnectionHandler();
+	}
+	
+	public static Handler getHandler(int opcode) {
+		return handlers[opcode];
 	}
 	
 	public static Channel getCenterChannel() {
@@ -55,12 +70,23 @@ public class SystemManager {
 		int id = idGenerater.incrementAndGet();
 		channel.attr(CHANNEL_ID).set(id);
 		channelHash.put(id, channel);
+		
+		// 发送给登陆服信息
+		InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
+		submitTask(
+			new SendCreateConnectionTask(
+				centerChannel, 
+				id, 
+				remoteAddress.getAddress().getHostAddress(), 
+				(short) remoteAddress.getPort()
+			)
+		);
 	}
 	
 	public static int getChannelId(Channel channel) {
 		return channel.attr(CHANNEL_ID).get();
 	}
-	
+		
 	public static void sendToClient(int id, Coder coder) {
 		Channel channel = channelHash.get(id);
 		if (channel == null || !channel.isActive()) {
@@ -75,7 +101,15 @@ public class SystemManager {
 		attr.set(null);
 		channelHash.remove(id);
 		
-		//TODO: 通知中心服 客户端断网了
+		//通知中心服 客户端断网了
+		submitTask(new NoticeDestroyTask(SystemManager.centerChannel, id));
+	}
+	
+	public static void destroyConnection(int fd) {
+		Channel channel = channelHash.get(fd);
+		if (channel != null && channel.isActive()) {
+			channel.close();
+		}
 	}
 	
 	public static void regToCenter() {

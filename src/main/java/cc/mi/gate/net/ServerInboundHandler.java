@@ -34,7 +34,7 @@ public class ServerInboundHandler extends SimpleChannelInboundHandler<Coder> {
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Coder msg) throws Exception {
 		msg.setId(SystemManager.getChannelId(ctx.channel()));
-		msg.setInternalDestFD(MsgConst.MSG_FROM_CLIENT);
+		msg.setInternalDestFD(MsgConst.MSG_FROM_GATE);
 		SystemManager.submitTask(new SendToCenterTask(SystemManager.getCenterChannel(), msg));
 	}
 
