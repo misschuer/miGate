@@ -9,7 +9,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
-public class ServerInboundHandler extends SimpleChannelInboundHandler<Coder> {
+public class GateServerHandler extends SimpleChannelInboundHandler<Coder> {
 	
 	@Override
 	public void channelActive(final ChannelHandlerContext ctx) throws Exception {

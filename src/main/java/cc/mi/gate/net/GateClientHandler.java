@@ -1,4 +1,4 @@
-package cc.mi.gate.gateClient;
+package cc.mi.gate.net;
 
 import cc.mi.core.coder.Coder;
 import cc.mi.gate.system.SystemManager;
