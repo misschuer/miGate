@@ -3,7 +3,7 @@ package cc.mi.gate.net;
 import cc.mi.core.coder.Coder;
 import cc.mi.core.constance.MsgConst;
 import cc.mi.core.task.SendToCenterTask;
-import cc.mi.gate.system.SystemManager;
+import cc.mi.gate.system.GateSystemManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
@@ -14,7 +14,7 @@ public class GateServerHandler extends SimpleChannelInboundHandler<Coder> {
 	@Override
 	public void channelActive(final ChannelHandlerContext ctx) throws Exception {
 		System.out.println("server建立连接" + System.currentTimeMillis());
-		SystemManager.channelActived(ctx.channel());
+		GateSystemManager.channelActived(ctx.channel());
 	}
 	
 	@Override
@@ -33,9 +33,9 @@ public class GateServerHandler extends SimpleChannelInboundHandler<Coder> {
 	
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Coder msg) throws Exception {
-		msg.setId(SystemManager.getChannelId(ctx.channel()));
+		msg.setId(GateSystemManager.getChannelId(ctx.channel()));
 		msg.setInternalDestFD(MsgConst.MSG_FROM_GATE);
-		SystemManager.submitTask(new SendToCenterTask(SystemManager.getCenterChannel(), msg));
+		GateSystemManager.submitTask(new SendToCenterTask(GateSystemManager.getCenterChannel(), msg));
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class GateServerHandler extends SimpleChannelInboundHandler<Coder> {
 	 @Override
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
 		 System.out.println("客户端断开连接");
-		 SystemManager.channelInactived(ctx.channel());
+		 GateSystemManager.channelInactived(ctx.channel());
 		 ctx.fireChannelInactive();
     }
 }

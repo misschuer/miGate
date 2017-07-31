@@ -21,7 +21,7 @@ import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 
-public class SystemManager {
+public class GateSystemManager {
 	// 通道的id属性
 	private static final AttributeKey<Integer> CHANNEL_ID;
 	
@@ -102,7 +102,7 @@ public class SystemManager {
 		channelHash.remove(id);
 		
 		//通知中心服 客户端断网了
-		submitTask(new NoticeDestroyTask(SystemManager.centerChannel, id));
+		submitTask(new NoticeDestroyTask(GateSystemManager.centerChannel, id));
 	}
 	
 	public static void destroyConnection(int fd) {
