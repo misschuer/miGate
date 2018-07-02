@@ -1,6 +1,6 @@
 package cc.mi.gate.task;
 
-import cc.mi.core.coder.Packet;
+import cc.mi.core.packet.Packet;
 import cc.mi.core.task.base.AbstractCoderTask;
 import cc.mi.gate.system.GateSystemManager;
 import io.netty.channel.Channel;

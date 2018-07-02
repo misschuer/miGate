@@ -6,12 +6,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import cc.mi.core.coder.Packet;
 import cc.mi.core.constance.IdentityConst;
 import cc.mi.core.generate.Opcodes;
 import cc.mi.core.handler.Handler;
 import cc.mi.core.log.CustomLogger;
+import cc.mi.core.packet.Packet;
 import cc.mi.core.task.base.Task;
+import cc.mi.gate.handler.CenterIsReadyHandler;
 import cc.mi.gate.handler.DestroyConnectionHandler;
 import cc.mi.gate.handler.IdentityServerTypeHandler;
 import io.netty.channel.Channel;
@@ -23,6 +24,12 @@ public enum GateSystemManager {
 	
 	private static final CustomLogger logger = CustomLogger.getLogger(GateSystemManager.class);
 	
+	
+	// 只有网关服启动完成 和 中心服启动完成 才算完成
+	// 判断服务器是否启动完成
+	private boolean gateBootstrap = false;
+	// 判断中心服自己是否启动好
+	private boolean centerBootstrap = false;
 	
 	// 固定线程线程逻辑
 	private final ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -46,14 +53,10 @@ public enum GateSystemManager {
 	// 通道的整形惟一id
 	private final AtomicInteger idGenerater = new AtomicInteger(0);
 	
-	// 只有网关服启动完成 和 中心服启动完成 才算完成
-	protected boolean   gateStarted = false;
-	protected boolean centerStarted = false;
-	
 	private GateSystemManager() {
 		handlers[Opcodes.MSG_DESTROYCONNECTION] = new DestroyConnectionHandler();
 		handlers[Opcodes.MSG_IDENTITYSERVERMSG] = new IdentityServerTypeHandler();
-		handlers[Opcodes.MSG_SERVERSTARTFINISHMSG] = new IdentityServerTypeHandler();
+		handlers[Opcodes.MSG_SERVERSTARTFINISHMSG] = new CenterIsReadyHandler();
 	}
 	
 	public void invokeHandler(Channel channel, Packet decoder) {
@@ -72,21 +75,6 @@ public enum GateSystemManager {
 		channel.attr(CHANNEL_ID).set(id);
 		channel.attr(CLIENT_CHECK).set(true);
 		channelHash.put(id, channel);
-		
-//		// 发送给登陆服信息
-//		InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
-//		submitTask(
-//			new SendCreateConnectionTask(
-//				centerChannel, 
-//				id, 
-//				remoteAddress.getAddress().getHostAddress(), 
-//				(short) remoteAddress.getPort()
-//			)
-//		);
-	}
-	
-	public boolean isClientChannel(Channel channel) {
-		return channel.attr(CLIENT_CHECK).get() != null;
 	}
 	
 	/**
@@ -105,12 +93,47 @@ public enum GateSystemManager {
 //		submitTask(new NoticeDestroyTask(GateSystemManager.centerChannel, id));
 	}
 	
+	
+	public boolean isBootstrap() {
+		return this.gateBootstrap && this.centerBootstrap;
+	}
+	
+	public void setCenterBootstrap(boolean bootstrap) {
+		this.centerBootstrap = bootstrap;
+		this.logIfAllServersEnabled();
+	}
+	
+	private void logIfAllServersEnabled() {
+		if (this.isBootstrap()) {
+			logger.devLog("all server found");
+		}
+	}
+	
 	/**
-	 * 内部服务器连进来了
-	 * @param channel
+	 * 只需要中心服, 登录服, 应用服, 场景服
 	 */
-	public void onInnerServerConnected(Channel channel) {
+	private void checkAllServerFound() {
+		boolean vist = true;
+		if (this.centerChannel == null) {
+			vist = false;
+		}
+		if (!innerChannelHash.containsKey(IdentityConst.SERVER_TYPE_LOGIN)) {
+			vist = false;
+		}
 		
+		if (!innerChannelHash.containsKey(IdentityConst.SERVER_TYPE_APP)) {
+			vist = false;
+		}
+		
+		if (innerChannelHash.size() == 2) {
+			vist = false;
+		}
+		if (!this.gateBootstrap && vist) {
+			this.logIfAllServersEnabled();
+		} else if (this.gateBootstrap && !vist) {
+			logger.devLog("some servers is not found");
+		}
+		this.gateBootstrap = vist;
 	}
 	
 	/**
@@ -146,6 +169,7 @@ public enum GateSystemManager {
 		innerChannelHash.put(fd, channel);
 		
 		logger.devLog("identity fd = {} serverType = {}", fd, serverType);
+		this.checkAllServerFound();
 	}
 	
 	/**
@@ -156,9 +180,11 @@ public enum GateSystemManager {
 		int fd = getChannelFd(channel);
 		if (fd == IdentityConst.SERVER_TYPE_CENTER) {
 			this.centerChannel = null;
+			this.centerBootstrap = false;
 		} else {
 			innerChannelHash.remove(fd);
 		}
+		this.checkAllServerFound();
 	}
 
 	public void submitTask(Task task) {

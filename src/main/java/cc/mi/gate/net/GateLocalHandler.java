@@ -1,8 +1,8 @@
 package cc.mi.gate.net;
 
-import cc.mi.core.coder.Packet;
 import cc.mi.core.handler.ChannelHandlerGenerator;
 import cc.mi.core.log.CustomLogger;
+import cc.mi.core.packet.Packet;
 import cc.mi.gate.system.GateSystemManager;
 import cc.mi.gate.task.DealInnerDataTask;
 import io.netty.channel.ChannelHandler;
@@ -13,7 +13,7 @@ public class GateLocalHandler extends SimpleChannelInboundHandler<Packet> implem
 	static final CustomLogger logger = CustomLogger.getLogger(GateLocalHandler.class);
 	
 	public void channelActive(final ChannelHandlerContext ctx) {
-		logger.devLog("an inner server connet to gate");
+		
 	}
 	
 	@Override
@@ -27,7 +27,7 @@ public class GateLocalHandler extends SimpleChannelInboundHandler<Packet> implem
 	}
 	
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		logger.devLog("an inner server is disconneted");
+		GateSystemManager.INSTANCE.onInnerServertDisconnected(ctx.channel());
 		ctx.fireChannelInactive();
 	}
 
