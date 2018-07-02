@@ -1,6 +1,5 @@
 package cc.mi.gate.task;
 
-import cc.mi.core.constance.MsgConst;
 import cc.mi.core.generate.msg.CreateConnection;
 import cc.mi.core.task.base.AbstractTask;
 import io.netty.channel.Channel;
@@ -22,7 +21,7 @@ public class SendCreateConnectionTask extends AbstractTask {
 	protected void doTask() {
 		CreateConnection cc = new CreateConnection();
 		cc.setFd(this.fd);
-		cc.setInternalDestFD(MsgConst.MSG_TO_CENTER);
+//		cc.setInternalDestFD(MsgConst.MSG_TO_CENTER);
 		cc.setRemoteIp(this.ip);
 		cc.setRemotePort(this.port);
 		

@@ -5,11 +5,9 @@ import cc.mi.core.handler.AbstractHandler;
 import cc.mi.core.server.ServerContext;
 import io.netty.channel.Channel;
 
-public class DestroyConnectionHandler extends AbstractHandler {
-
+public class NotifyServerStartedHandler extends AbstractHandler {
 	@Override
 	public void handle(ServerContext player, Channel channel, Packet decoder) {
-//		DestroyConnection dc = (DestroyConnection)decoder;
-//		GateSystemManager.destroyConnection(dc.getFd());
+		
 	}
 }
