@@ -1,8 +1,8 @@
 package cc.mi.gate.task;
 
-import cc.mi.core.coder.Packet;
+import cc.mi.core.packet.Packet;
 import cc.mi.core.task.base.AbstractCoderTask;
-import cc.mi.gate.system.GateSystemManager;
+import cc.mi.gate.server.GateServerManager;
 import io.netty.channel.Channel;
 
 public class DealInnerDataTask extends AbstractCoderTask {
@@ -14,7 +14,7 @@ public class DealInnerDataTask extends AbstractCoderTask {
 	
 	@Override
 	protected void doTask() {
-		GateSystemManager.INSTANCE.invokeHandler(this.channel, coder);
+		GateServerManager.INSTANCE.invokeHandler(this.channel, coder);
 	}
 
 }

@@ -1,10 +1,9 @@
 package cc.mi.gate.net;
 
-import cc.mi.core.coder.Packet;
 import cc.mi.core.handler.ChannelHandlerGenerator;
 import cc.mi.core.log.CustomLogger;
-import cc.mi.gate.system.GateSystemManager;
-import cc.mi.gate.task.DealInnerDataTask;
+import cc.mi.core.packet.Packet;
+import cc.mi.gate.server.GateServerManager;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -16,9 +15,7 @@ public class GateHandler extends SimpleChannelInboundHandler<Packet> implements 
 	
 	@Override
 	public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-		String host_info = ctx.channel().remoteAddress().toString();
-		logger.devLog("a client conneted host_info = {}", host_info);
-		GateSystemManager.INSTANCE.onClientConnected(ctx.channel());
+		GateServerManager.INSTANCE.onClientConnected(ctx.channel());
 	}
 	
 	@Override
@@ -39,16 +36,6 @@ public class GateHandler extends SimpleChannelInboundHandler<Packet> implements 
 	
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Packet msg) throws Exception {
-		if (GateSystemManager.INSTANCE.isClientChannel(ctx.channel())) {
-			
-		} else {
-			int fd = msg.getFD();
-			if (fd > 0) {
-				// send to client
-			} else {
-				GateSystemManager.INSTANCE.submitTask(new DealInnerDataTask(ctx.channel(), msg));
-			}
-		}
 		
 //		msg.setId(GateSystemManager.getChannelId(ctx.channel()));
 //		msg.setInternalDestFD(MsgConst.MSG_FROM_GATE);
@@ -64,7 +51,7 @@ public class GateHandler extends SimpleChannelInboundHandler<Packet> implements 
 	 @Override
     public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
 		 logger.devLog("a client disconneted");
-		 GateSystemManager.INSTANCE.onClientDisconnected(ctx.channel());
+		 GateServerManager.INSTANCE.onClientDisconnected(ctx.channel());
 		 ctx.fireChannelInactive();
     }
 

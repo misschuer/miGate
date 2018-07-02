@@ -16,7 +16,11 @@ public class Startup {
 			@Override
 			public void run() {
 				try {
-					ServerCore.INSTANCE.run(ServerConfig.getOuterPort(), new GateHandler(), IdentityConst.SERVER_TYPE_GATE);
+					while (true) {
+						ServerCore.INSTANCE.run(ServerConfig.getOuterPort(), new GateHandler(), IdentityConst.SERVER_TYPE_GATE);
+						logger.devLog("监听客户端端口发生错误,系统将在1秒钟后重新执行");
+						Thread.sleep(1000);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -27,7 +31,11 @@ public class Startup {
 			@Override
 			public void run() {
 				try {
-					ServerCore.INSTANCE.run(ServerConfig.getInnerPort(), new GateLocalHandler(), IdentityConst.SERVER_TYPE_GATE);
+					while (true) {
+						ServerCore.INSTANCE.run(ServerConfig.getInnerPort(), new GateLocalHandler(), IdentityConst.SERVER_TYPE_GATE);
+						logger.devLog("监听内部服务器端口发生错误,系统将在1秒钟后重新执行");
+						Thread.sleep(1000);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

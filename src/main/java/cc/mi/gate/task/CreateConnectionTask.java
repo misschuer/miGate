@@ -4,13 +4,13 @@ import cc.mi.core.generate.msg.CreateConnection;
 import cc.mi.core.task.base.AbstractTask;
 import io.netty.channel.Channel;
 
-public class SendCreateConnectionTask extends AbstractTask {
+public class CreateConnectionTask extends AbstractTask {
 	private final Channel channel;
 	private final int fd;
 	private final String ip;
-	private final short port;
+	private final int port;
 	
-	public SendCreateConnectionTask(Channel channel, int fd, String ip, short port) {
+	public CreateConnectionTask(Channel channel, int fd, String ip, int port) {
 		this.channel = channel;
 		this.fd      =      fd;
 		this.ip      =      ip;
@@ -21,10 +21,8 @@ public class SendCreateConnectionTask extends AbstractTask {
 	protected void doTask() {
 		CreateConnection cc = new CreateConnection();
 		cc.setFd(this.fd);
-//		cc.setInternalDestFD(MsgConst.MSG_TO_CENTER);
 		cc.setRemoteIp(this.ip);
 		cc.setRemotePort(this.port);
-		
 		channel.writeAndFlush(cc);
 	}
 

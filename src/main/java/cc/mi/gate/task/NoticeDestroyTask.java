@@ -17,7 +17,6 @@ public class NoticeDestroyTask extends AbstractTask {
 	protected void doTask() {
 		DestroyConnection dc = new DestroyConnection();
 		dc.setFd(fd);
-//		dc.setInternalDestFD(MsgConst.MSG_TO_CENTER);
 		channel.writeAndFlush(dc);
 	}
 }
