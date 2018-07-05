@@ -14,6 +14,7 @@ import cc.mi.core.log.CustomLogger;
 import cc.mi.core.packet.Packet;
 import cc.mi.core.task.base.Task;
 import cc.mi.gate.handler.CenterIsReadyHandler;
+import cc.mi.gate.handler.CloseSessionHandler;
 import cc.mi.gate.handler.DestroyConnectionHandler;
 import cc.mi.gate.handler.IdentityServerTypeHandler;
 import cc.mi.gate.task.CreateConnectionTask;
@@ -75,12 +76,20 @@ public enum GateServerManager {
 		handlers[Opcodes.MSG_DESTROYCONNECTION] = new DestroyConnectionHandler();
 		handlers[Opcodes.MSG_IDENTITYSERVERMSG] = new IdentityServerTypeHandler();
 		handlers[Opcodes.MSG_SERVERSTARTFINISHMSG] = new CenterIsReadyHandler();
+		handlers[Opcodes.MSG_CLOSESESSION] = new CloseSessionHandler();
 	}
 	
 	public void invokeHandler(Channel channel, Packet decoder) {
 		Handler handle = handlers[decoder.getOpcode()];
 		if (handle != null) {
 			handle.handle(null, channel, decoder);
+		}
+	}
+
+	public void closeSession(int fd) {
+		Channel channel = channelHash.get(fd);
+		if (channel != null) {
+			channel.close();
 		}
 	}
 	
