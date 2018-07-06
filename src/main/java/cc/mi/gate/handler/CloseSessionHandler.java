@@ -13,7 +13,7 @@ public class CloseSessionHandler extends HandlerImpl {
 	public void handle(ServerContext player, Channel channel, Packet decoder) {
 		CloseSession packet = (CloseSession) decoder;
 		int fd = packet.getFd();
-		GateServerManager.INSTANCE.closeSession(fd);
+		GateServerManager.INSTANCE.closeSession(fd, packet.getReasonType());
 	}
 
 }

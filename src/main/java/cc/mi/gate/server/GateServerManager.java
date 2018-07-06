@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import cc.mi.core.constance.IdentityConst;
 import cc.mi.core.constance.TaskDirectConst;
 import cc.mi.core.generate.Opcodes;
+import cc.mi.core.generate.msg.OperationResult;
 import cc.mi.core.handler.Handler;
 import cc.mi.core.log.CustomLogger;
 import cc.mi.core.packet.Packet;
@@ -20,8 +21,11 @@ import cc.mi.gate.handler.IdentityServerTypeHandler;
 import cc.mi.gate.task.CreateConnectionTask;
 import cc.mi.gate.task.NoticeDestroyTask;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelPromise;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 public enum GateServerManager {
 	INSTANCE;
@@ -86,10 +90,28 @@ public enum GateServerManager {
 		}
 	}
 
-	public void closeSession(int fd) {
-		Channel channel = channelHash.get(fd);
+	public void closeSession(int fd, int reasonType) {
+		final Channel channel = channelHash.get(fd);
 		if (channel != null) {
-			channel.close();
+			// 删除
+			channelHash.remove(fd);
+			
+			if (reasonType == 0) {
+				channel.close();
+			} else {
+				// 通知完再关掉
+				OperationResult or = new OperationResult();
+				or.setType(reasonType);
+				or.setData("");
+				ChannelPromise promise = channel.newPromise();
+				promise.addListener(new GenericFutureListener<Future<? super Void>>() {
+					@Override
+					public void operationComplete(Future<? super Void> future) throws Exception {
+						channel.close();
+					}
+				});
+				channel.writeAndFlush(or, promise);
+			}
 		}
 	}
 	
