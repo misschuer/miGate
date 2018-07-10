@@ -36,10 +36,7 @@ public class GateHandler extends SimpleChannelInboundHandler<Packet> implements 
 	
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Packet msg) throws Exception {
-		
-//		msg.setId(GateSystemManager.getChannelId(ctx.channel()));
-//		msg.setInternalDestFD(MsgConst.MSG_FROM_GATE);
-//		GateSystemManager.submitTask(new SendToCenterTask(GateSystemManager.getCenterChannel(), msg));
+		GateServerManager.INSTANCE.sendToCenter(ctx.channel(), msg);
 	}
 
 	@Override

@@ -1,11 +1,9 @@
 package cc.mi.gate.net;
 
-import cc.mi.core.constance.TaskDirectConst;
 import cc.mi.core.handler.ChannelHandlerGenerator;
 import cc.mi.core.log.CustomLogger;
 import cc.mi.core.packet.Packet;
 import cc.mi.gate.server.GateServerManager;
-import cc.mi.gate.task.DealInnerDataTask;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -21,9 +19,9 @@ public class GateLocalHandler extends SimpleChannelInboundHandler<Packet> implem
 	public void channelRead0(final ChannelHandlerContext ctx, final Packet coder) throws Exception {
 		int fd = coder.getFD();
 		if (fd > 0) {
-			// send to client
+			GateServerManager.INSTANCE.sendToClient(coder);
 		} else {
-			GateServerManager.INSTANCE.submitTask(TaskDirectConst.TASK_DIRECT_OUT, 0, new DealInnerDataTask(ctx.channel(), coder));
+			GateServerManager.INSTANCE.dealInnerData(ctx.channel(), coder);
 		}
 	}
 	

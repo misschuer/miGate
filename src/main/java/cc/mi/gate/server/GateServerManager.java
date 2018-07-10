@@ -7,19 +7,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cc.mi.core.constance.IdentityConst;
-import cc.mi.core.constance.TaskDirectConst;
 import cc.mi.core.generate.Opcodes;
 import cc.mi.core.generate.msg.OperationResult;
 import cc.mi.core.handler.Handler;
 import cc.mi.core.log.CustomLogger;
 import cc.mi.core.packet.Packet;
+import cc.mi.core.task.SendToCenterTask;
 import cc.mi.core.task.base.Task;
 import cc.mi.gate.handler.CenterIsReadyHandler;
 import cc.mi.gate.handler.CloseSessionHandler;
 import cc.mi.gate.handler.DestroyConnectionHandler;
 import cc.mi.gate.handler.IdentityServerTypeHandler;
 import cc.mi.gate.task.CreateConnectionTask;
+import cc.mi.gate.task.DealInnerDataTask;
 import cc.mi.gate.task.NoticeDestroyTask;
+import cc.mi.gate.task.SendToClientTask;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.Attribute;
@@ -45,8 +47,7 @@ public enum GateServerManager {
 
 	// 逻辑线程组 给它进行负载均衡
 	// 还能保证每个客户端的消息一定是有序的
-	private final ExecutorService[] clientInGroup;
-	private final ExecutorService[] clientOutGroup;
+	private final ExecutorService[] clientGroup;
 	private static final int GROUP_SIZE = 4;
 	private static final int MOD = GROUP_SIZE - 1;
 	
@@ -67,14 +68,9 @@ public enum GateServerManager {
 	
 	private GateServerManager() {
 		// 初始化线程组, 数量一定要2的幂, 否则会导致分配线程逻辑错误
-		clientInGroup = new ExecutorService[GROUP_SIZE];
+		clientGroup = new ExecutorService[GROUP_SIZE];
 		for (int i = 0; i< GROUP_SIZE; ++ i) {
-			clientInGroup[ i ] = Executors.newFixedThreadPool(1);
-		}
-		
-		clientOutGroup = new ExecutorService[GROUP_SIZE];
-		for (int i = 0; i< GROUP_SIZE; ++ i) {
-			clientOutGroup[ i ] = Executors.newFixedThreadPool(1);
+			clientGroup[ i ] = Executors.newFixedThreadPool(1);
 		}
 		
 		handlers[Opcodes.MSG_DESTROYCONNECTION] = new DestroyConnectionHandler();
@@ -254,22 +250,42 @@ public enum GateServerManager {
 	
 	/**
 	 * 
-	 * @param direct 朝向, 是网关服进消息还是出消息,
-	 * @param fd
-	 * @param task
-	 */
-	public void submitTask(int direct, int fd, Task task) {
-		ExecutorService[] group = TaskDirectConst.TASK_DIRECT_IN == direct ? clientInGroup : clientOutGroup;
-		group[fd & MOD].submit(task);
-	}
-	
-	/**
-	 * 
 	 * @param fd
 	 * @param task
 	 */
 	public void submitTask(int fd, Task task) {
-		this.submitTask(TaskDirectConst.TASK_DIRECT_OUT, fd, task);
+		clientGroup[fd & MOD].submit(task);
+	}
+	
+	/**
+	 * 发送到中心服
+	 * @param fd
+	 * @param packet
+	 */
+	public void sendToCenter(Channel channel, Packet packet) {
+		int fd = this.getChannelFd(channel);
+		packet.setFD(fd);
+		this.submitTask(fd, new SendToCenterTask(this.centerChannel, packet));
+	}
+	
+	/**
+	 * 发送到客户端
+	 * @param fd
+	 * @param packet
+	 */
+	public void sendToClient(Packet packet) {
+		int fd = packet.getFD();
+		if (fd == 0) {
+			logger.errorLog("no channel to send for opcode {}", packet.getOpcode());
+			return;
+		}
+		Channel channel = this.channelHash.get(fd);
+		packet.setFD(0);
+		this.submitTask(fd, new SendToClientTask(channel, packet));
+	}
+	
+	public void dealInnerData(Channel channel, Packet packet) {
+		this.submitTask(0, new DealInnerDataTask(channel, packet));
 	}
 	
 	public int getChannelFd(Channel channel) {
