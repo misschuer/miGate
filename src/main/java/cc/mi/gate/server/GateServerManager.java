@@ -186,7 +186,7 @@ public enum GateServerManager {
 			vist = false;
 		}
 		
-		if (innerChannelHash.size() == 2) {
+		if (innerChannelHash.size() <= 2) {
 			vist = false;
 		}
 		if (!this.gateBootstrap && vist) {
