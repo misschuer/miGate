@@ -15,14 +15,18 @@ public class Startup {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					while (true) {
+				while (true) {
+					try {
 						ServerCore.INSTANCE.run(ServerConfig.getOuterPort(), new GateHandler(), IdentityConst.SERVER_TYPE_GATE);
+					} catch (Exception e) {
+					} finally {
 						logger.devLog("监听客户端端口发生错误,系统将在1秒钟后重新执行");
-						Thread.sleep(1000);
+						try {
+							Thread.sleep(1000);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			}
 		}, "gate-for-clients").start();
@@ -30,14 +34,18 @@ public class Startup {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					while (true) {
+				while (true) {
+					try {
 						ServerCore.INSTANCE.run(ServerConfig.getInnerPort(), new GateLocalHandler(), IdentityConst.SERVER_TYPE_GATE);
+					} catch (Exception e) {
+					} finally {
 						logger.devLog("监听内部服务器端口发生错误,系统将在1秒钟后重新执行");
-						Thread.sleep(1000);
+						try {
+							Thread.sleep(1000);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			}
 		}, "gate-for-inner").start();
