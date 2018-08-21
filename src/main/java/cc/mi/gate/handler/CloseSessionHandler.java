@@ -10,7 +10,7 @@ import io.netty.channel.Channel;
 public class CloseSessionHandler extends HandlerImpl {
 
 	@Override
-	public void handle(ServerContext player, Channel channel, Packet decoder) {
+	public void handle(ServerContext nil, Channel channel, Packet decoder) {
 		CloseSession packet = (CloseSession) decoder;
 		int fd = packet.getFd();
 		GateServerManager.INSTANCE.closeSession(fd, packet.getReasonType());
