@@ -146,12 +146,12 @@ public enum GateServerManager {
 		Integer fd = attr.get();
 		if (fd != null) {
 			channelHash.remove(fd);
+			//通知中心服 客户端断网了
+			this.submitTask(fd, new NoticeDestroyTask(this.centerChannel, fd));
 		} else {
 			logger.devLog("err for channel host = {}", channel.remoteAddress().toString());
 		}
 		
-		//通知中心服 客户端断网了
-		this.submitTask(fd, new NoticeDestroyTask(this.centerChannel, fd));
 	}
 	
 	
@@ -264,7 +264,7 @@ public enum GateServerManager {
 	 */
 	public void sendToCenter(Channel channel, Packet packet) {
 		int fd = this.getChannelFd(channel);
-		packet.setFD(fd);
+		packet.setBaseFd(fd);
 		this.submitTask(fd, new SendToCenterTask(this.centerChannel, packet));
 	}
 	
@@ -274,13 +274,13 @@ public enum GateServerManager {
 	 * @param packet
 	 */
 	public void sendToClient(Packet packet) {
-		int fd = packet.getFD();
+		int fd = packet.getBaseFd();
 		if (fd == 0) {
 			logger.errorLog("no channel to send for opcode {}", packet.getOpcode());
 			return;
 		}
 		Channel channel = this.channelHash.get(fd);
-		packet.setFD(0);
+		packet.setBaseFd(0);
 		this.submitTask(fd, new SendToClientTask(channel, packet));
 	}
 	

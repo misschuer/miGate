@@ -17,7 +17,7 @@ public class GateLocalHandler extends SimpleChannelInboundHandler<Packet> implem
 	
 	@Override
 	public void channelRead0(final ChannelHandlerContext ctx, final Packet coder) throws Exception {
-		int fd = coder.getFD();
+		int fd = coder.getBaseFd();
 		if (fd > 0) {
 			GateServerManager.INSTANCE.sendToClient(coder);
 		} else {
